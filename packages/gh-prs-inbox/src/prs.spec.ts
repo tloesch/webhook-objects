@@ -1,5 +1,27 @@
 import { expect, test } from "vitest";
-import { feedEntries, type Pr, prToEntry } from "./prs";
+import { feedEntries, filterArgs, type Pr, prToEntry } from "./prs";
+
+test("splits grouped OR queries into separate CLI arguments", () => {
+	expect(filterArgs("(review-requested:@me OR assignee:@me) state:closed")).toEqual([
+		"(",
+		"review-requested:@me",
+		"OR",
+		"assignee:@me",
+		")",
+		"state:closed",
+	]);
+});
+
+test("preserves spaces and parentheses in quoted search values", () => {
+	expect(filterArgs('label:"needs review (team)"\tstate:open')).toEqual([
+		'label:"needs review (team)"',
+		"state:open",
+	]);
+});
+
+test("rejects an unclosed quoted search value", () => {
+	expect(() => filterArgs('label:"needs review')).toThrow("unclosed double quote");
+});
 
 const pr = (number: number, updatedAt: string): Pr => ({
 	number,

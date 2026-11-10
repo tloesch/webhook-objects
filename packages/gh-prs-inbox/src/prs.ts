@@ -40,17 +40,44 @@ export function feedEntries(prs: Pr[], limit: number): Entry[] {
 		.map(prToEntry);
 }
 
-/** Ask the `gh` CLI for open PRs that have requested the current user's review. */
+/** Split search syntax into CLI arguments, preserving quoted qualifier values. */
+export function filterArgs(filter: string): string[] {
+	const args: string[] = [];
+	let token = "";
+	let quoted = false;
+	for (let i = 0; i < filter.length; i++) {
+		const char = filter[i];
+		if (quoted && char === "\\" && i + 1 < filter.length) {
+			token += char + filter[++i];
+			continue;
+		}
+		if (char === '"') quoted = !quoted;
+		if (!quoted && (/\s/.test(char) || char === "(" || char === ")")) {
+			if (token) args.push(token);
+			token = "";
+			if (char === "(" || char === ")") args.push(char);
+		} else {
+			token += char;
+		}
+	}
+	if (quoted) throw new Error("GH_PR_FILTER contains an unclosed double quote");
+	if (token) args.push(token);
+	return args;
+}
+
+/** Ask the `gh` CLI for PRs matching the configured GitHub search filter. */
 export async function fetchPrs(): Promise<Pr[]> {
 	const { stdout } = await exec("gh", [
 		"search",
 		"prs",
-		"--review-requested=@me",
-		"--state=open",
 		// gh defaults to 30; raise to the API max so a large queue isn't truncated.
 		"--limit=1000",
 		"--json",
 		"number,title,url,updatedAt,repository",
+		"--",
+		...filterArgs(
+			process.env.GH_PR_FILTER?.trim() || "review-requested:@me state:open",
+		),
 	]);
 	return JSON.parse(stdout) as Pr[];
 }
