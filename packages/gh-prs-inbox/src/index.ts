@@ -106,11 +106,13 @@ async function main() {
 		await poll();
 		timer = setTimeout(tick, intervalMs);
 	};
-	process.on("SIGINT", () => {
+	const stop = () => {
 		clearTimeout(timer);
 		console.log("\nStopped.");
 		process.exit(0);
-	});
+	};
+	process.on("SIGINT", stop);
+	process.on("SIGTERM", stop);
 	tick();
 }
 
