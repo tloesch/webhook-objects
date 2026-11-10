@@ -1,0 +1,17 @@
+services:
+  gh-prs-inbox:
+    build: .
+    restart: unless-stopped
+    init: true
+    environment:
+      GH_TOKEN: ${GH_TOKEN:?Set GH_TOKEN in .env}
+      GH_PR_FILTER: ${GH_PR_FILTER:-review-requested:@me state:open}
+      GATHER_WEBHOOK_URL: ${GATHER_WEBHOOK_URL:?Set GATHER_WEBHOOK_URL in .env}
+      GATHER_WEBHOOK_SECRET: ${GATHER_WEBHOOK_SECRET:?Set GATHER_WEBHOOK_SECRET in .env}
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-60}
+      GH_PROMPT_DISABLED: "1"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

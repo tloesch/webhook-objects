@@ -10,6 +10,9 @@ Each example drives a **Smart Object** — a Gather map object whose state is se
 
 ## Getting Started
 
+To run `gh-prs-inbox` with Docker Compose and configure it through `.env`, see
+the [Docker Compose setup](./packages/gh-prs-inbox/README.md#docker-compose).
+
 To get started, you can explore our individual packages:
 
 * [`@webhook-objects/now-playing-inbox`](./packages/now-playing-inbox)
